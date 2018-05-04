@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    #main{
+        height: 700px;
+    }
+</style>
+<body>
+<div id="main"></div>
+<script type="text/javascript" src="js/jquery-1.12.2.min.js"></script>
+<script type="text/javascript" src="js/echarts.js"></script>
+<!--<script type="text/javascript" src="js/china.js"></script>-->
+<script>
+
+    var myChart = echarts.init(document.getElementById('main'));
+    var uploadedDataURL="./js/gd.json";
+    var geoCoordMap = {
+        "广州":[113.397637, 23.425178],
+        "韶关": [113.595544, 24.801322],
+        "深圳": [114.085947, 22.567],
+        "珠海": [113.553986, 22.224979],
+        "汕头": [116.708463, 23.37102],
+        "佛山": [113.122717, 23.028762],
+        "江门": [112.614942, 22.190431],
+        "湛江": [110.364977, 21.274898],
+        "茂名": [110.919229, 21.959751],
+        "肇庆": [112.272529, 23.551546],
+        "惠州": [114.412599, 23.079404],
+        "梅州": [116.117582, 24.299112],
+        "汕尾": [115.394238, 22.974485],
+        "河源": [114.897802, 24.046266],
+        "阳江": [111.895107, 21.959222],
+        "清远": [113.051227, 24.085022],
+        "东莞": [113.746262, 23.046237],
+        "中山": [113.382391, 22.521113],
+        "潮州": [116.832301, 23.861701],
+        "揭阳": [116.095733, 23.243778],
+        "云浮": [112.014439, 22.929801]
+    };
+    var rawData = [
+        ["广州",701321,7421],
+        ["韶关",162,226],
+        ["深圳",152,156],
+        ["珠海",332,356],
+        ["汕头",122,266],
+        ["佛山",122,256],
+        ["江门",132,256],
+        ["湛江",132,256],
+        ["茂名",132,256],
+        ["肇庆",132,256],
+        ["惠州",132,256],
+        ["梅州",132,256],
+        ["汕尾",132,256],
+        ["河源",132,256],
+        ["阳江",132,256],
+        ["清远",132,256],
+        ["东莞",132,256],
+        ["中山",132,256],
+        ["潮州",132,256],
+        ["揭阳",132,256],
+        ["云浮",132,256]
+    ];
+    $.get(uploadedDataURL,function(gdJson){
+        echarts.registerMap('gd',gdJson);
+
+        function makeMapData(rawData){
+           var mapData = [];
+           for(var i=0;i<rawData.length;i++){
+               var geoCoord = geoCoordMap[rawData[i][0]];
+               if(geoCoord){ //如果是广州市，得到广州的坐标
+                   mapData.push({
+                       name: rawData[i][0],
+                       value:geoCoord.concat(rawData[i].slice(1)) // 广州的value [113.397637, 23.425178, 132, 256]
+                   })
+               }
+           }
+           return mapData;
+       }
+        var option = {
+            animation: false,
+            // 地图背景颜色
+//            backgroundColor: new echarts.graphic.RadialGradient(0.5, 0.5, 0.4,
+//                [{
+//                offset: 0,
+//                color: '#4b5769'
+//            }, {
+//                offset: 1,
+//                color: '#404a59'
+//            }]),
+            tooltip: {
+                trigger: 'axis'
+            },
+            color:"#fff",
+            geo: {
+                map: 'gd',
+                // silent: true,
+                roam: true,
+                zoom: 1.155, // 地图初始大小
+                center:[113.122717, 23.028762], // 初始中心位置
+                label: {
+                    color:"#fff",
+                    emphasis: {
+                        show: false,
+                        areaColor: '#fff'
+                    }
+                },
+                // 地区块儿颜色
+                itemStyle: {
+                    normal: {
+                        areaColor: '#36bcf2',
+                        borderColor: '#4572d9',
+                        color:"#fff"
+                    },
+                    emphasis: {
+                        areaColor: '#21AEF8'
+                    }
+                }
+            },
+            series: []
+        };
+
+        function renderEachCity() {
+            var option = {
+                xAxis: [],
+                yAxis: [],
+                grid: [],
+                series: []
+            };
+
+            echarts.util.each(rawData, function(dataItem, idx) { //遍历 类似js的foreach
+
+                var arr = [dataItem[1],dataItem[2]];
+                var geoCoord = geoCoordMap[dataItem[0]];
+                var coord = myChart.convertToPixel('geo', geoCoord);
+                idx += '';
+                option.xAxis.push({
+                    id: idx,
+                    gridId: idx,
+                    type: 'category',
+                    name: dataItem[0],
+                    nameLocation: 'middle',
+                    nameGap: 3,
+                    splitLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        show: false
+                    },
+                    axisLine: {
+                        onZero: false,
+                        lineStyle: {
+                            color: '#666'
+                        }
+                    },
+                    // data: xAxisCategory,
+                    data: ["数据A","数据B"],
+                    z: 100
+
+                });
+                option.yAxis.push({
+                    id: idx,
+                    gridId: idx,
+                    splitLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        show: false
+                    },
+                    axisLine: {
+                        show: false,
+                        lineStyle: {
+                            color: '#1C70B6'
+                        }
+                    },
+                    z: 100
+                });
+                option.grid.push({
+                    id: idx,
+                    width: 10,
+                    height: 50,
+                    left: coord[0] - 15,
+                    top: coord[1] - 50,
+                    z: 100
+                });
+                option.series.push({
+                    id: idx,
+                    type: 'bar',
+                    xAxisId: idx,
+                    yAxisId: idx,
+                    barGap: 0,
+                    barCategoryGap: 0,
+                    data:  arr,
+                    z: 100,
+                    label: {
+                        normal: {
+//                            show: true,
+//                            position: 'center',
+                            textStyle: {
+                                color: ['#F66','#2d53a8']
+                            }
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: function(params){
+                                // 柱状图每根柱子颜色
+                                var colorList = ['#F66','#2d53a8'];
+                                return colorList[params.dataIndex];
+                            }
+                        }
+                    }
+                });
+            });
+
+            var scatter = {
+                type:"scatter",
+                coordinateSystem: 'geo',
+                data:[
+                    {
+                        name:"广州",
+                        value:[113.397637, 23.425178,2235]
+                    }
+                ],
+                symbolSize: 20,
+                symbol: 'image://images/star.png',
+//                symbolRotate: 0,
+                symbolOffset: ['50%', '70%']
+            };
+            option.series.push(scatter);
+            myChart.setOption(option);
+        }
+        setTimeout(renderEachCity, 0);
+        myChart.setOption(option);
+
+        window.onresize = function(){
+            myChart.resize();
+            renderEachCity();
+        };
+        myChart.on('georoam', function(params) {
+            renderEachCity();
+        });
+    });
+
+
+</script>
+</body>
+</html>
